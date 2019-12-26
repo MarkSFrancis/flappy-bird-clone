@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class Level : MonoBehaviour
 {
@@ -70,11 +69,11 @@ public class Level : MonoBehaviour
         {
             TimeToNextPipeSpawn += PipeSpawnDelay;
 
-            float heightEdgeLimit = 10f;
-            float minHeight = PipeGapSize * .5f + heightEdgeLimit;
-            float maxHeight = _cameraOrthoSizeY * 2f - minHeight;
+            var heightEdgeLimit = 10f;
+            var minHeight = PipeGapSize * .5f + heightEdgeLimit;
+            var maxHeight = _cameraOrthoSizeY * 2f - minHeight;
 
-            float height = UnityEngine.Random.Range(minHeight, maxHeight);
+            var height = UnityEngine.Random.Range(minHeight, maxHeight);
             var newPipePair = PipePair.Create(height, PipeGapSize, _cameraOrthoSizeX);
             Pipes.Add(newPipePair);
 
@@ -86,14 +85,15 @@ public class Level : MonoBehaviour
     {
         for (var i = 0; i < Pipes.Count; i++)
         {
-            var pipe = Pipes[i];
-            bool wasAheadOfPlayer = pipe.IsAheadOfPlayer;
+            PipePair pipe = Pipes[i];
+            var wasAheadOfPlayer = pipe.IsAheadOfPlayer;
 
             pipe.ShiftLeft(_worldSpeed * Time.deltaTime);
 
             if (wasAheadOfPlayer && !pipe.IsAheadOfPlayer)
             {
                 TotalPipesPassed++;
+                Sounds.Play(Sound.Score);
             }
 
             if (pipe.IsOffscreen)
@@ -170,7 +170,7 @@ public class Level : MonoBehaviour
 
         public static Pipe Create(float height, float xPosition, bool openAtTop)
         {
-            var body = Instantiate(GameAssets.Instance.pfPipeBody);
+            Transform body = Instantiate(GameAssets.Instance.pfPipeBody);
 
             var pipeBodyYPosition = _cameraOrthoSizeY;
             if (openAtTop)
@@ -179,13 +179,13 @@ public class Level : MonoBehaviour
                 body.localScale = new Vector3(1, -1, 1);
             }
             body.position = new Vector2(xPosition, pipeBodyYPosition);
-            var bodyRenderer = body.GetComponent<SpriteRenderer>();
+            SpriteRenderer bodyRenderer = body.GetComponent<SpriteRenderer>();
             bodyRenderer.size = new Vector2(_pipeWidth, height);
-            var bodyCollider = body.GetComponent<BoxCollider2D>();
+            BoxCollider2D bodyCollider = body.GetComponent<BoxCollider2D>();
             bodyCollider.size = new Vector2(_pipeWidth, height);
             bodyCollider.offset = new Vector2(0, -height / 2);
 
-            var head = Instantiate(GameAssets.Instance.pfPipeHead);
+            Transform head = Instantiate(GameAssets.Instance.pfPipeHead);
 
             var pipeHeadYPosition = _cameraOrthoSizeY - height + _pipeHeadHeight / 2;
             if (openAtTop)

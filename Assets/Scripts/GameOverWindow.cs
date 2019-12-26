@@ -1,16 +1,24 @@
 ﻿using CodeMonkey.Utils;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameOverWindow : MonoBehaviour
 {
     public Text ScoreText { get; set; }
 
+    private Button_UI _retryBtn;
+    private Button_UI _mainMenuBtn;
+
     private void Awake()
     {
         ScoreText = transform.Find("scoreText").GetComponent<Text>();
-        transform.Find("retryBtn").GetComponent<Button_UI>().ClickFunc += RetryClicked;
+        _retryBtn = transform.Find("retryBtn").GetComponent<Button_UI>();
+        _mainMenuBtn = transform.Find("mainMenuBtn").GetComponent<Button_UI>();
+
+        _retryBtn.ClickFunc += Retry_Clicked;
+        _retryBtn.SetupSounds();
+        _mainMenuBtn.ClickFunc += MainMenu_Clicked;
+        _mainMenuBtn.SetupSounds();
     }
 
     private void Start()
@@ -35,8 +43,13 @@ public class GameOverWindow : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    private void RetryClicked()
+    private void Retry_Clicked()
     {
-        SceneManager.LoadScene("GameScene");
+        SceneLoader.RequestScene(Scene.Game);
+    }
+
+    private void MainMenu_Clicked()
+    {
+        SceneLoader.RequestScene(Scene.MainMenu);
     }
 }

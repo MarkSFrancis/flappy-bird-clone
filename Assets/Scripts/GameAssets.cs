@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 
 public class GameAssets : MonoBehaviour
@@ -8,9 +7,17 @@ public class GameAssets : MonoBehaviour
 
     public Transform pfPipeHead;
     public Transform pfPipeBody;
+    public GameSound[] GameSounds;
 
     private void Awake()
     {
         Instance = this;
     }
+}
+
+[Serializable]
+public class GameSound
+{
+    public AudioClip Clip;
+    public Sound Sound;
 }
