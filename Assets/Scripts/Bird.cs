@@ -26,6 +26,8 @@ public class Bird : MonoBehaviour
             {
                 Jump();
             }
+
+            transform.eulerAngles = new Vector3(0, 0, BirdRigidbody2D.velocity.y * .35f);
         }
     }
 

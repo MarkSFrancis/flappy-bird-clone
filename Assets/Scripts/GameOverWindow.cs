@@ -4,7 +4,8 @@ using UnityEngine.UI;
 
 public class GameOverWindow : MonoBehaviour
 {
-    public Text ScoreText { get; set; }
+    public Text ScoreText { get; private set; }
+    public Text HighScoreText { get; private set; }
 
     private Button_UI _retryBtn;
     private Button_UI _mainMenuBtn;
@@ -12,6 +13,7 @@ public class GameOverWindow : MonoBehaviour
     private void Awake()
     {
         ScoreText = transform.Find("scoreText").GetComponent<Text>();
+        HighScoreText = transform.Find("highScoreText").GetComponent<Text>();
         _retryBtn = transform.Find("retryBtn").GetComponent<Button_UI>();
         _mainMenuBtn = transform.Find("mainMenuBtn").GetComponent<Button_UI>();
 
@@ -27,9 +29,27 @@ public class GameOverWindow : MonoBehaviour
         Hide();
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Retry_Clicked();
+        }
+    }
+
     private void Bird_OnDie(object sender, System.EventArgs e)
     {
         ScoreText.text = Level.Instance.TotalPipesPassed.ToString();
+
+        if (Score.HighScore < Level.Instance.TotalPipesPassed)
+        {
+            HighScoreText.text = "NEW HIGHSCORE!";
+        }
+        else
+        {
+            HighScoreText.text = "HIGHSCORE: " + Score.HighScore;
+        }
+
         Show();
     }
 

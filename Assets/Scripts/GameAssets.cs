@@ -7,6 +7,11 @@ public class GameAssets : MonoBehaviour
 
     public Transform pfPipeHead;
     public Transform pfPipeBody;
+    public Transform pfGround;
+    public Transform pfCloud1;
+    public Transform pfCloud2;
+    public Transform pfCloud3;
+
     public GameSound[] GameSounds;
 
     private void Awake()

@@ -1,6 +1,7 @@
 ﻿using CodeMonkey;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Level : MonoBehaviour
@@ -10,11 +11,18 @@ public class Level : MonoBehaviour
     private const float _pipeHeadHeight = 3.75f;
     private const float _worldSpeed = 30f;
     private const float _cameraOrthoSizeX = 100f;
+    private const float _cloudWidth = 60f;
     private const float _playerPosition = 0f;
+    private const float _groundWidth = 100.5f;
+    private const float _cloudY = 30f;
 
     public float PipeSpawnDelay { get; private set; }
+    public float CloudSpawnDelay { get; private set; }
     public List<PipePair> Pipes { get; private set; }
+    public List<Transform> Grounds { get; private set; }
+    public List<Transform> Clouds { get; private set; }
     public float TimeToNextPipeSpawn { get; private set; }
+    public float TimeToNextCloudSpawn { get; set; }
     public float PipeGapSize { get; set; }
     public int TotalPipesPassed { get; private set; }
     public static Level Instance { get; private set; }
@@ -24,7 +32,10 @@ public class Level : MonoBehaviour
     {
         Instance = this;
         Pipes = new List<PipePair>();
+        Grounds = new List<Transform>();
+        Clouds = new List<Transform>();
         PipeSpawnDelay = 1.2f;
+        CloudSpawnDelay = 7f;
         PipeGapSize = 50f;
         State = LevelState.WaitingForStart;
     }
@@ -33,6 +44,10 @@ public class Level : MonoBehaviour
     {
         Bird.Instance.OnDie += Bird_OnDie;
         Bird.Instance.OnStart += Bird_OnStart;
+
+        Score.Setup();
+        SpawnInitialGround();
+        SpawnInitialClouds();
     }
 
     private void Bird_OnStart(object sender, EventArgs e)
@@ -59,6 +74,91 @@ public class Level : MonoBehaviour
 
         MovePipes();
         HandlePipeSpawning();
+        HandleGround();
+        HandleClouds();
+    }
+
+    private Transform GetNextCloud()
+    {
+        int randomCloudId = UnityEngine.Random.Range(0, 3);
+
+        switch(randomCloudId)
+        {
+            case 0:
+                return GameAssets.Instance.pfCloud1;
+            case 1:
+                return GameAssets.Instance.pfCloud2;
+            case 2:
+                return GameAssets.Instance.pfCloud3;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(randomCloudId), $"Cannot render cloud with ID {randomCloudId}");
+        }
+    }
+
+    private void SpawnInitialClouds()
+    {
+        Transform cloud;
+
+        cloud = Instantiate(GetNextCloud(), new Vector3(0, _cloudY, 0), Quaternion.identity);
+        Clouds.Add(cloud);
+    }
+
+    private void SpawnInitialGround()
+    {
+        Transform ground;
+        const float groundY = -49f;
+
+        ground = Instantiate(GameAssets.Instance.pfGround, new Vector3(-_groundWidth, groundY, 0), Quaternion.identity);
+        Grounds.Add(ground);
+
+        ground = Instantiate(GameAssets.Instance.pfGround, new Vector3(0, groundY, 0), Quaternion.identity);
+        Grounds.Add(ground);
+
+        ground = Instantiate(GameAssets.Instance.pfGround, new Vector3(_groundWidth, groundY, 0), Quaternion.identity);
+        Grounds.Add(ground);
+    }
+
+    private void HandleClouds()
+    {
+        TimeToNextCloudSpawn -= Time.deltaTime;
+
+        while (TimeToNextCloudSpawn < 0)
+        {
+            TimeToNextCloudSpawn += CloudSpawnDelay;
+
+            var cloud = Instantiate(GetNextCloud(), new Vector3(_cameraOrthoSizeX + _cloudWidth, _cloudY, 0), Quaternion.identity);
+            Clouds.Add(cloud);
+        }
+
+        for(int i = 0; i < Clouds.Count; i++)
+        {
+            var cloud = Clouds[i];
+
+            cloud.position += new Vector3(-1, 0) * _worldSpeed * Time.deltaTime * .5f;
+
+            if (cloud.position.x < -(_cameraOrthoSizeX + _cloudWidth))
+            {
+                Destroy(cloud.gameObject);
+                Clouds.RemoveAt(i--);
+            }
+        }
+    }
+
+    private void HandleGround()
+    {
+        var halfGroundWidth = _groundWidth / 2;
+
+        foreach (var ground in Grounds)
+        {
+            ground.position += new Vector3(-1, 0) * _worldSpeed * Time.deltaTime;
+
+            if (ground.position.x < -_cameraOrthoSizeX - halfGroundWidth)
+            {
+                var rightMostXPosition = Grounds.Max(g => g.position.x);
+
+                ground.position = new Vector3(rightMostXPosition + _groundWidth, ground.position.y, ground.position.z);
+            }
+        }
     }
 
     private void HandlePipeSpawning()

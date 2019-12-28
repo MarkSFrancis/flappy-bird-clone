@@ -3,21 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityScene = UnityEngine.SceneManagement.Scene;
 
 public static class Sounds
 {
-    private static Dictionary<Scene, GameObject> _soundObjects;
+    private static readonly Dictionary<UnityScene, GameObject> _soundObjects = new Dictionary<UnityScene, GameObject>();
 
     public static void Play(Sound sound, float volume = 1f)
     {
-        if (_soundObjects is null)
+        var audioSource = GetAudioSource();
+
+        audioSource.PlayOneShot(GetClip(sound), volume);
+    }
+
+    private static AudioSource GetAudioSource()
+    {
+        var activeScene = SceneManager.GetActiveScene();
+
+        if (!_soundObjects.TryGetValue(activeScene, out var soundObject))
         {
-            _soundObjects = new GameObject("Sound", typeof(AudioSource));
-            var activeScene = SceneManager.GetActiveScene();
+            soundObject = new GameObject("Sound", typeof(AudioSource));
+
+            _soundObjects.Add(activeScene, soundObject);
         }
 
-        var audioSource = _soundObjects.GetComponent<AudioSource>();
-        audioSource.PlayOneShot(GetClip(sound), volume);
+        return soundObject.GetComponent<AudioSource>();
     }
 
     private static AudioClip GetClip(Sound sound)
